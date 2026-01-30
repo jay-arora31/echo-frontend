@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+/* Google-Inspired Theme for SuperBryn */
+@theme {
+  /* Clean, light background */
+  --color-background: #FFFFFF;
+  --color-foreground: #202124;
+
+  /* Cards & surfaces */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #202124;
+
+  /* Google Brand Colors */
+  --color-primary: #4285F4;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F1F3F4;
+  --color-secondary-foreground: #5F6368;
+  --color-muted: #F8F9FA;
+  --color-muted-foreground: #5F6368;
+  --color-accent: #E8F0FE;
+  --color-accent-foreground: #1A73E8;
+
+  /* Status Colors (Google palette) */
+  --color-destructive: #EA4335;
+  --color-success: #34A853;
+  --color-warning: #FBBC04;
+
+  /* Borders & inputs */
+  --color-border: #DADCE0;
+  --color-input: #F1F3F4;
+  --color-ring: rgba(66, 133, 244, 0.4);
+
+  --radius: 1.5rem;
+}
+
+/* Base styles - Clean Google aesthetic */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'Inter', 'Google Sans', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Google-style Card with elevation */
+.google-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.30),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  border: 1px solid #F1F3F4;
+}
+
+.google-card-elevated {
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.30),
+    0 4px 8px 3px rgba(60, 64, 67, 0.15);
+}
+
+/* Google Pill Button */
+.google-button {
+  background: #FFFFFF;
+  border: 1px solid #DADCE0;
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-weight: 500;
+  color: #202124;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.google-button:hover {
+  background: #F8F9FA;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.30);
+}
+
+.google-button-primary {
+  background: #4285F4;
+  border: none;
+  color: #FFFFFF;
+}
+
+.google-button-primary:hover {
+  background: #1A73E8;
+  box-shadow: 0 1px 3px 0 rgba(66, 133, 244, 0.30),
+    0 4px 8px 3px rgba(66, 133, 244, 0.15);
+}
+
+/* Animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 40px rgba(66, 133, 244, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes google-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: fade-in-scale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-spin-slow {
+  animation: google-spinner 1.2s linear infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Google-style focus ring */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-ring);
+}
+
+/* Subtle gradient for hero section */
+.hero-gradient {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%);
+}
+
+/* Calling animation - slow ping for rings */
+@keyframes ping-slow {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  75%,
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 1.5s ease-in-out infinite;
+}
+
+/* Custom Scrollbar (subtle) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DADCE0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BDC1C6;
+}
