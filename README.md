@@ -27,12 +27,14 @@ A modern React-based web interface for the SuperBryn AI voice assistant.
 ## Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <your-repo-url>
    cd frontend
    ```
 
 2. **Install dependencies**
+
    ```bash
    # Using bun (recommended)
    bun install
@@ -42,6 +44,7 @@ A modern React-based web interface for the SuperBryn AI voice assistant.
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your backend URL
@@ -56,6 +59,7 @@ VITE_API_URL=http://localhost:8000
 ```
 
 For production:
+
 ```env
 VITE_API_URL=https://your-backend-url.com
 ```
@@ -125,26 +129,34 @@ frontend/
 ## Key Components
 
 ### AvatarView
+
 Displays the Beyond Presence video avatar with:
+
 - Beautiful connecting animation during load
 - Speaking/listening state indicators
 - Fallback CSS avatar if video fails
 
 ### ControlBar
+
 Call controls including:
+
 - Start/End call buttons
 - Mute toggle
 - Call duration timer
 - Connection status
 
 ### ToolPanel
+
 Shows AI tool calls in real-time:
+
 - Tool-specific icons and colors
 - Running/completed states
 - Timestamps
 
 ### Transcript
+
 Live conversation transcript with:
+
 - User and AI messages
 - Response time metrics
 - Auto-scroll to latest
@@ -200,6 +212,7 @@ bun run build
 - Edge 90+
 
 Requires:
+
 - WebRTC support
 - Microphone access
 
@@ -212,20 +225,19 @@ Requires:
 ## Troubleshooting
 
 ### "Microphone not working"
+
 - Ensure browser has microphone permission
 - Check that no other app is using the microphone
 - Try refreshing the page
 
 ### "Avatar not loading"
+
 - Beyond Presence may have cold start delay
 - Check backend logs for avatar errors
 - Verify Beyond Presence API key is valid
 
 ### "Connection failed"
+
 - Verify backend is running
 - Check VITE_API_URL is correct
 - Ensure LiveKit credentials are valid
-
-## License
-
-MIT
