@@ -16,16 +16,14 @@ export function ControlBar({ onStartCall, onEndCall }: ControlBarProps) {
 
   // Track call duration
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    
-    if (callState === 'active' && callStartTime) {
-      interval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - callStartTime.getTime()) / 1000);
-        setDuration(elapsed);
-      }, 1000);
-    } else {
-      setDuration(0);
+    if (callState !== 'active' || !callStartTime) {
+      return;
     }
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - callStartTime.getTime()) / 1000);
+      setDuration(elapsed);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [callState, callStartTime]);

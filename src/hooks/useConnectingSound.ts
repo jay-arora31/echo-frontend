@@ -19,6 +19,7 @@ export function useConnectingSound() {
 
         try {
             // Create AudioContext
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
             audioContextRef.current = ctx;
 
@@ -95,7 +96,9 @@ export function useConnectingSound() {
             try {
                 osc.stop();
                 osc.disconnect();
-            } catch { }
+            } catch {
+                // ignore
+            }
         });
         oscillatorsRef.current = [];
 
@@ -103,7 +106,9 @@ export function useConnectingSound() {
         gainNodesRef.current.forEach(gain => {
             try {
                 gain.disconnect();
-            } catch { }
+            } catch {
+                // ignore
+            }
         });
         gainNodesRef.current = [];
 
@@ -111,7 +116,9 @@ export function useConnectingSound() {
         if (audioContextRef.current) {
             try {
                 audioContextRef.current.close();
-            } catch { }
+            } catch {
+                // ignore
+            }
             audioContextRef.current = null;
         }
     }, []);
@@ -121,6 +128,7 @@ export function useConnectingSound() {
      */
     const playConnectedChime = useCallback(() => {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const now = ctx.currentTime;
 

@@ -37,7 +37,7 @@ export function LiveCaptions() {
                 if (typeTimeoutRef.current) clearTimeout(typeTimeoutRef.current);
             };
         }
-    }, [fullText, speaker]);
+    }, [fullText, speaker, isTyping]);
 
     // Handle new messages
     useEffect(() => {

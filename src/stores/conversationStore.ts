@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { TranscriptMessage, ToolCall, CallState, CallSummary } from '@/types';
+import type { TrackReference } from '@livekit/components-react';
 
 export type AvatarStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
@@ -12,7 +13,7 @@ interface ConversationState {
   // Avatar state
   isSpeaking: boolean;
   isListening: boolean;
-  avatarVideoTrack: any | null; // TrackReference from livekit/components-react
+  avatarVideoTrack: TrackReference | null;
   avatarStatus: AvatarStatus;
   avatarMessage: string;
 
@@ -41,7 +42,7 @@ interface ConversationState {
 
   setIsSpeaking: (speaking: boolean) => void;
   setIsListening: (listening: boolean) => void;
-  setAvatarVideoTrack: (track: any | null) => void;
+  setAvatarVideoTrack: (track: TrackReference | null) => void;
   setAvatarStatus: (status: AvatarStatus, message?: string) => void;
 
   addMessage: (role: 'user' | 'assistant', content: string, responseTime?: number) => void;

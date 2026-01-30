@@ -78,7 +78,7 @@ export default function App() {
                 isConnected={true}
                 isSpeaking={isSpeaking}
                 isListening={isListening}
-                avatarVideoTrack={avatarVideoTrack as any}
+                avatarVideoTrack={avatarVideoTrack}
               />
             </div>
 

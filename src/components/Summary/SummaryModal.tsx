@@ -1,4 +1,5 @@
 import { Calendar, Clock, MessageSquare, Lightbulb, RotateCcw, CheckCircle } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,9 +22,20 @@ export function SummaryModal({ open, onClose, onNewCall }: SummaryModalProps) {
   const { summary, messages, callStartTime, toolCalls } = useConversationStore();
 
   // Calculate duration
-  const duration = callStartTime
-    ? Math.floor((Date.now() - callStartTime.getTime()) / 1000)
-    : 0;
+  const [endTime, setEndTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (open && !endTime) {
+      setTimeout(() => setEndTime(Date.now()), 0);
+    } else if (!open) {
+      setTimeout(() => setEndTime(null), 0);
+    }
+  }, [open, endTime]);
+
+  const duration = useMemo(() => {
+    if (!callStartTime || !endTime) return 0;
+    return Math.floor((endTime - callStartTime.getTime()) / 1000);
+  }, [callStartTime, endTime]);
 
   // Get completed tool calls
   const completedTools = toolCalls.filter(tc => tc.status === 'completed');
@@ -98,7 +110,7 @@ export function SummaryModal({ open, onClose, onNewCall }: SummaryModalProps) {
                 <h3 className="font-medium text-sm text-gray-700">Appointments Cancelled</h3>
               </div>
               <div className="space-y-2">
-                {cancelledAppointments.map((apt, _idx) => (
+                {cancelledAppointments.map((apt) => (
                   <div
                     key={apt.id}
                     className="p-3 rounded-xl bg-red-50 border border-red-100"

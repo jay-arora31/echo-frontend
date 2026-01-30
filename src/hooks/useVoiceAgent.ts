@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Room, RoomEvent, Track, type RemoteParticipant, type RemoteTrackPublication } from 'livekit-client';
 import { useConversationStore } from '@/stores/conversationStore';
 import { createRoom, getToken } from '@/lib/api';
+import type { CallSummary } from '@/types';
 
 export function useVoiceAgent() {
+  const [room, setRoom] = useState<Room | null>(null);
   const roomRef = useRef<Room | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const micEnabledRef = useRef<boolean>(false);
@@ -27,15 +29,13 @@ export function useVoiceAgent() {
 
   // Handle incoming data messages from agent
   const handleDataReceived = useCallback(
-    (payload: Uint8Array, _participant?: RemoteParticipant) => {
+    (payload: Uint8Array) => {
       try {
         const data = JSON.parse(new TextDecoder().decode(payload));
-        console.log('📥 Received data from agent:', data);
 
         switch (data.type) {
           case 'avatar_status':
             // Avatar loading status from backend
-            console.log('🎭 Avatar status:', data.status, data.message);
             setAvatarStatus(data.status, data.message);
 
             // Enable microphone only when avatar is ready (or failed gracefully)
@@ -43,15 +43,13 @@ export function useVoiceAgent() {
               micEnabledRef.current = true;
               roomRef.current.localParticipant.setMicrophoneEnabled(true)
                 .then(() => {
-                  console.log('🎤 Microphone enabled after avatar ready');
                   setCallState('active');
                 })
-                .catch((err) => console.error('❌ Microphone error:', err));
+                .catch(() => { });
             }
             break;
           case 'streaming_text':
             // Real-time text streaming from LLM (typing effect)
-            console.log('📝 Streaming text received:', data.content?.substring(0, 50) + '...', 'is_final:', data.is_final);
             if (data.is_final) {
               // Final chunk - clear streaming text (full message will come via transcript)
               setStreamingText(null);
@@ -74,22 +72,20 @@ export function useVoiceAgent() {
             }
             break;
           case 'tool_start':
-            console.log('🔧 Tool starting:', data.tool);
             addToolCall(data.tool);
             break;
           case 'tool_end':
           case 'tool_executed':
-            console.log('✅ Tool completed:', data.tool, data.result);
             updateToolCall(data.tool, 'completed', data.result);
             break;
           case 'summary':
             setSummary(data.summary);
             break;
           default:
-            console.log('Unknown message type:', data.type);
+            break;
         }
-      } catch (e) {
-        console.error('Failed to parse data message:', e);
+      } catch {
+        // Silently ignore parse errors
       }
     },
     [addMessage, setStreamingText, addToolCall, updateToolCall, setSummary, setIsSpeaking, setAvatarStatus, setCallState]
@@ -98,7 +94,6 @@ export function useVoiceAgent() {
   // Handle remote audio track subscription - PLAY THE AGENT'S VOICE
   const handleTrackSubscribed = useCallback(
     (track: Track, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-      console.log('Track subscribed:', track.kind, 'from', participant.identity);
 
       if (track.kind === Track.Kind.Audio) {
         // Create audio element to play the agent's voice
@@ -106,13 +101,10 @@ export function useVoiceAgent() {
         audioElement.id = `audio-${participant.identity}-${publication.trackSid}`;
         document.body.appendChild(audioElement);
         audioElementsRef.current.set(publication.trackSid, audioElement);
-
-        console.log('🔊 Audio track attached and playing from:', participant.identity);
       }
 
       // Handle video track from avatar (Beyond Presence)
       if (track.kind === Track.Kind.Video) {
-        console.log('📹 Video track received from:', participant.identity);
         // Store the full TrackReference for AvatarView
         // VideoTrack component requires: { participant, publication, source }
         setAvatarVideoTrack({
@@ -127,20 +119,18 @@ export function useVoiceAgent() {
 
   // Handle track unsubscription - cleanup audio elements
   const handleTrackUnsubscribed = useCallback(
-    (track: Track, publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
+    (track: Track, publication: RemoteTrackPublication) => {
       if (track.kind === Track.Kind.Audio) {
         const audioElement = audioElementsRef.current.get(publication.trackSid);
         if (audioElement) {
           track.detach(audioElement);
           audioElement.remove();
           audioElementsRef.current.delete(publication.trackSid);
-          console.log('Audio track detached');
         }
       }
 
       // Clear avatar video track when unsubscribed
       if (track.kind === Track.Kind.Video) {
-        console.log('📹 Video track unsubscribed');
         setAvatarVideoTrack(null);
       }
     },
@@ -172,6 +162,7 @@ export function useVoiceAgent() {
       });
 
       roomRef.current = room;
+      setRoom(room);
 
       // Set up event handlers
       room.on(RoomEvent.DataReceived, handleDataReceived);
@@ -181,13 +172,11 @@ export function useVoiceAgent() {
       room.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
 
       room.on(RoomEvent.Connected, () => {
-        console.log('✅ Connected to room');
         // Don't set active yet - wait for avatar_status 'ready'
         // setCallState('active') will be called when avatar is ready
       });
 
       room.on(RoomEvent.Disconnected, () => {
-        console.log('Disconnected from room');
         // Cleanup all audio elements
         audioElementsRef.current.forEach((element) => {
           element.remove();
@@ -203,13 +192,9 @@ export function useVoiceAgent() {
         }
       });
 
-      room.on(RoomEvent.ParticipantConnected, (participant) => {
-        console.log('Participant connected:', participant.identity);
-      });
+      room.on(RoomEvent.ParticipantConnected, () => { });
 
       room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-        const speakerIds = speakers.map(s => s.identity);
-        console.log('Active speakers:', speakerIds);
 
         // Check if agent is speaking (identity !== 'user')
         const agentSpeaking = speakers.some(s => s.identity !== 'user' && s.identity !== room.localParticipant.identity);
@@ -222,17 +207,13 @@ export function useVoiceAgent() {
 
       // Connect to room with audio enabled
       await room.connect(tokenInfo.livekit_url, tokenInfo.token);
-      console.log('Room state:', room.state);
 
       // Reset mic tracking for this call
       micEnabledRef.current = false;
 
       // DON'T enable microphone here - wait for avatar_status 'ready' event
       // This prevents user from speaking before the avatar is loaded
-      console.log('🎤 Microphone will be enabled when avatar is ready...');
-
-    } catch (error) {
-      console.error('Failed to start call:', error);
+    } catch {
       setCallState('idle');
     }
   }, [startCall, setRoomName, setCallState, handleDataReceived, handleTrackSubscribed, handleTrackUnsubscribed, callState, setIsSpeaking, setIsListening]);
@@ -246,6 +227,7 @@ export function useVoiceAgent() {
     if (roomRef.current) {
       await roomRef.current.disconnect();
       roomRef.current = null;
+      setRoom(null);
     }
 
     // Cleanup audio elements
@@ -295,7 +277,7 @@ export function useVoiceAgent() {
           }
           summaryText += `Duration: ${minutes}m ${seconds}s, ${messages.length} messages.`;
 
-          setSummary({ summary: summaryText } as any);
+          setSummary({ summary: summaryText } as CallSummary);
         }
         resolve();
       }, 10000);
@@ -315,20 +297,21 @@ export function useVoiceAgent() {
 
   // Cleanup on unmount
   useEffect(() => {
+    const audioElements = audioElementsRef.current;
     return () => {
       if (roomRef.current) {
         roomRef.current.disconnect();
       }
       // Cleanup audio elements
-      audioElementsRef.current.forEach((element) => {
+      audioElements.forEach((element) => {
         element.remove();
       });
-      audioElementsRef.current.clear();
+      audioElements.clear();
     };
   }, []);
 
   return {
-    room: roomRef.current,
+    room,
     startCall: startVoiceCall,
     endCall: endVoiceCall,
     startNewCall,

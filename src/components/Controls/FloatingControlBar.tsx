@@ -11,7 +11,6 @@ interface FloatingControlBarProps {
 
 export function FloatingControlBar({
     onEndCall,
-    isListening: _isListening,
     micEnabled = true,
     onToggleMic,
 }: FloatingControlBarProps) {

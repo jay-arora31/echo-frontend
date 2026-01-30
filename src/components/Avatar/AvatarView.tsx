@@ -1,13 +1,13 @@
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import type { TrackReferenceOrPlaceholder } from "@livekit/components-react";
+import type { TrackReference } from "@livekit/components-react";
 import { VideoTrack } from "@livekit/components-react";
 
 interface AvatarViewProps {
   isConnected: boolean;
   isSpeaking: boolean;
   isListening: boolean;
-  avatarVideoTrack: TrackReferenceOrPlaceholder | null;
+  avatarVideoTrack: TrackReference | null;
 }
 
 export function AvatarView({ isConnected, isSpeaking, isListening, avatarVideoTrack }: AvatarViewProps) {
@@ -37,7 +37,7 @@ export function AvatarView({ isConnected, isSpeaking, isListening, avatarVideoTr
         {/* Avatar Video or Fallback */}
         {avatarVideoTrack ? (
           <VideoTrack
-            trackRef={avatarVideoTrack as any}
+            trackRef={avatarVideoTrack}
             className="w-full h-full object-cover"
           />
         ) : (

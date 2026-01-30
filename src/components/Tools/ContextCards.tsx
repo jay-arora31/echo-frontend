@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useConversationStore } from '@/stores/conversationStore';
 import { cn } from '@/lib/utils';
 import { Calendar, User, CheckCircle, Clock, X } from 'lucide-react';
+import type { ToolCall } from '@/types';
 
 export function ContextCards() {
     const toolCalls = useConversationStore((state) => state.toolCalls);
-    const [activeCard, setActiveCard] = useState<any | null>(null);
+    const [activeCard, setActiveCard] = useState<ToolCall | null>(null);
 
     // Auto-show last completed tool call
     useEffect(() => {
@@ -13,7 +14,7 @@ export function ContextCards() {
             const lastTool = toolCalls[toolCalls.length - 1];
             // Only show if recent or if it's a major action
             if (lastTool.status === 'completed' || lastTool.status === 'running') {
-                setActiveCard(lastTool);
+                setTimeout(() => setActiveCard(lastTool), 0);
 
                 // Auto-hide after 8 seconds unless it's a booking
                 if (lastTool.status === 'completed' && lastTool.tool !== 'book_appointment') {
@@ -22,7 +23,7 @@ export function ContextCards() {
                 }
             }
         }
-    }, [toolCalls.length, toolCalls[toolCalls.length - 1]?.status]);
+    }, [toolCalls]);
 
     if (!activeCard) return null;
 
@@ -97,15 +98,10 @@ function getToolTitle(tool: string) {
     }
 }
 
-function renderToolContent(tool: any) {
-    // Attempt to parse args if string
-    let args = tool.args;
-    if (typeof args === 'string') {
-        try { args = JSON.parse(args); } catch (e) { }
-    }
+function renderToolContent(tool: ToolCall) {
 
     switch (tool.tool) {
-        case 'book_appointment':
+        case 'book_appointment': {
             // Result format: "Friday, January 31 at 2:00 PM"
             let displayDate = 'Confirmed';
             let displayTime = 'Confirmed';
@@ -130,6 +126,7 @@ function renderToolContent(tool: any) {
                     </div>
                 </div>
             );
+        }
         case 'identify_user':
             return (
                 <div className="flex items-center gap-2 bg-[#E6F4EA] p-3 rounded-lg">
