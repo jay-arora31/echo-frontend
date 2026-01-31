@@ -4,11 +4,22 @@ import type { TrackReference } from '@livekit/components-react';
 
 export type AvatarStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
+interface PreWarmData {
+  roomName: string;
+  token: string;
+  livekitUrl: string;
+  timestamp: number;
+}
+
 interface ConversationState {
   // Call state
   callState: CallState;
   roomName: string | null;
   callStartTime: Date | null;
+
+  // Pre-warm state (for faster connection)
+  preWarmData: PreWarmData | null;
+  isPreWarming: boolean;
 
   // Avatar state
   isSpeaking: boolean;
@@ -59,7 +70,12 @@ interface ConversationState {
 
   setUser: (id: string | null, name: string | null, phone: string | null) => void;
 
+  // Pre-warm actions
+  setPreWarmData: (data: PreWarmData | null) => void;
+  setIsPreWarming: (isPreWarming: boolean) => void;
+
   reset: () => void;
+  softReset: () => void; // Reset for new call but keep pre-warm data
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -67,6 +83,8 @@ export const useConversationStore = create<ConversationState>((set) => ({
   callState: 'idle',
   roomName: null,
   callStartTime: null,
+  preWarmData: null,
+  isPreWarming: false,
   isSpeaking: false,
   isListening: false,
   avatarVideoTrack: null,
@@ -157,10 +175,16 @@ export const useConversationStore = create<ConversationState>((set) => ({
 
   setUser: (userId, userName, userPhone) => set({ userId, userName, userPhone }),
 
+  // Pre-warm actions
+  setPreWarmData: (preWarmData) => set({ preWarmData }),
+  setIsPreWarming: (isPreWarming) => set({ isPreWarming }),
+
   reset: () => set({
     callState: 'idle',
     roomName: null,
     callStartTime: null,
+    preWarmData: null,
+    isPreWarming: false,
     isSpeaking: false,
     isListening: false,
     messages: [],
@@ -170,6 +194,23 @@ export const useConversationStore = create<ConversationState>((set) => ({
     userId: null,
     userName: null,
     userPhone: null,
+    avatarVideoTrack: null,
+    avatarStatus: 'idle',
+    avatarMessage: '',
+  }),
+
+  // Soft reset - clears conversation but keeps pre-warm data for faster reconnect
+  softReset: () => set({
+    callState: 'idle',
+    roomName: null,
+    callStartTime: null,
+    // Keep preWarmData and isPreWarming!
+    isSpeaking: false,
+    isListening: false,
+    messages: [],
+    streamingText: null,
+    toolCalls: [],
+    summary: null,
     avatarVideoTrack: null,
     avatarStatus: 'idle',
     avatarMessage: '',

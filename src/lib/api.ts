@@ -39,6 +39,22 @@ export async function getToken(roomName: string, participantName: string = 'user
   );
 }
 
+/**
+ * Pre-warm a room by creating it and triggering the agent + avatar to start.
+ * The avatar will begin loading in the background.
+ * Returns a token for the user to join when ready.
+ */
+export async function prewarmRoom() {
+  return fetchApi<{
+    room_name: string;
+    token: string;
+    livekit_url: string;
+    status: 'warming' | 'ready';
+  }>('/api/room/prewarm', {
+    method: 'POST',
+  });
+}
+
 // User API
 export async function identifyUser(phoneNumber: string, name?: string) {
   return fetchApi<{
@@ -79,5 +95,53 @@ export async function getSummary(sessionId: string) {
     user_preferences: Record<string, unknown>;
     duration_seconds: number | null;
   }>(`/api/summaries/session/${sessionId}`);
+}
+
+export async function getSummaryByRoom(roomName: string) {
+  return fetchApi<{
+    id: string;
+    summary: string;
+    appointments_booked: unknown[];
+    user_preferences: Record<string, unknown>;
+    duration_seconds: number | null;
+    user_id: string | null;
+  }>(`/api/summaries/room/${roomName}`);
+}
+
+export interface GenerateSummaryRequest {
+  room_name: string;
+  messages: { role: string; content: string }[];
+  tool_calls: string[];
+  appointments_booked: { id?: string; appointment_date?: string; appointment_time?: string }[];
+  user_name?: string;
+  user_phone?: string;
+  duration_seconds?: number;
+}
+
+export interface CostBreakdown {
+  deepgram_stt: number;
+  cartesia_tts: number;
+  openai_llm: number;
+  beyond_presence_avatar: number;
+  total: number;
+  usage?: {
+    stt_minutes: number;
+    tts_characters: number;
+    llm_input_tokens: number;
+    llm_output_tokens: number;
+    avatar_minutes: number;
+  };
+}
+
+export async function generateSummary(request: GenerateSummaryRequest) {
+  return fetchApi<{
+    summary: string;
+    user_name: string | null;
+    appointments_booked: { id?: string; appointment_date?: string; appointment_time?: string }[];
+    cost: CostBreakdown | null;
+  }>('/api/summaries/generate', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
 }
 

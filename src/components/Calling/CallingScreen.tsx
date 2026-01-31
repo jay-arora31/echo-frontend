@@ -78,10 +78,15 @@ export function CallingScreen({ isVisible, onCancel }: CallingScreenProps) {
                     Cancel
                 </button>
 
-                {/* Subtle hint */}
-                <p className="mt-8 text-xs text-gray-400 animate-pulse">
-                    Please wait while we establish connection...
-                </p>
+                {/* Subtle hint with avatar load time info */}
+                <div className="mt-8 text-center space-y-1">
+                    <p className="text-xs text-gray-500 animate-pulse">
+                        Please wait while we establish connection...
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        📹 Avatar typically loads in 20-30 seconds
+                    </p>
+                </div>
             </div>
         </div>
     );

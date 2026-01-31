@@ -25,6 +25,21 @@ export interface AvailableSlot {
   formatted: string;
 }
 
+export interface CostBreakdown {
+  deepgram_stt: number;
+  cartesia_tts: number;
+  openai_llm: number;
+  beyond_presence_avatar: number;
+  total: number;
+  usage?: {
+    stt_minutes: number;
+    tts_characters: number;
+    llm_input_tokens: number;
+    llm_output_tokens: number;
+    avatar_minutes: number;
+  };
+}
+
 export interface CallSummary {
   id: string;
   user_id: string | null;
@@ -34,6 +49,7 @@ export interface CallSummary {
   user_preferences: Record<string, unknown> | null;
   duration_seconds: number | null;
   created_at: string;
+  cost?: CostBreakdown | null;
 }
 
 export interface RoomInfo {
