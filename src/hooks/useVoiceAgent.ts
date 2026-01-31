@@ -28,7 +28,6 @@ export function useVoiceAgent() {
     setIsListening,
     setAvatarVideoTrack,
     setAvatarStatus,
-    reset,
     softReset,
     preWarmData,
     setPreWarmData,
