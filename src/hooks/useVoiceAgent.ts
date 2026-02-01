@@ -411,19 +411,17 @@ export function useVoiceAgent() {
     };
   }, []);
 
-  // Auto pre-warm on page load - start immediately!
-  // The avatar takes ~20 seconds to warm up, so start ASAP
-  useEffect(() => {
-    // Small delay to let the page render first, then start pre-warming
-    const timer = setTimeout(() => {
-      if (callState === 'idle' && !preWarmData) {
-        console.log('🚀 Auto pre-warming on page load...');
-        preWarm();
-      }
-    }, 500); // Start pre-warming 0.5 seconds after page loads
-
-    return () => clearTimeout(timer);
-  }, []); // Only run once on mount
+  // Auto pre-warm DISABLED - was causing too many API calls
+  // The avatar will load when user clicks to start the call instead
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (callState === 'idle' && !preWarmData) {
+  //       console.log('🚀 Auto pre-warming on page load...');
+  //       preWarm();
+  //     }
+  //   }, 500);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   return {
     room,
