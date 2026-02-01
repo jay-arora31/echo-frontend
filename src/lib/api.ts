@@ -39,21 +39,6 @@ export async function getToken(roomName: string, participantName: string = 'user
   );
 }
 
-/**
- * Pre-warm a room by creating it and triggering the agent + avatar to start.
- * The avatar will begin loading in the background.
- * Returns a token for the user to join when ready.
- */
-export async function prewarmRoom() {
-  return fetchApi<{
-    room_name: string;
-    token: string;
-    livekit_url: string;
-    status: 'warming' | 'ready';
-  }>('/api/room/prewarm', {
-    method: 'POST',
-  });
-}
 
 // User API
 export async function identifyUser(phoneNumber: string, name?: string) {

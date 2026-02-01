@@ -1,18 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Room, RoomEvent, Track, type RemoteParticipant, type RemoteTrackPublication } from 'livekit-client';
 import { useConversationStore } from '@/stores/conversationStore';
-import { createRoom, getToken, prewarmRoom } from '@/lib/api';
+import { createRoom, getToken } from '@/lib/api';
 import type { CallSummary } from '@/types';
-
-// Pre-warm data expires after 80 seconds (backend keeps rooms for 90s)
-const PRE_WARM_EXPIRY_MS = 80000;
 
 export function useVoiceAgent() {
   const [room, setRoom] = useState<Room | null>(null);
   const roomRef = useRef<Room | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const micEnabledRef = useRef<boolean>(false);
-  const preWarmingRef = useRef<boolean>(false);
 
   const {
     callState,
@@ -29,10 +25,7 @@ export function useVoiceAgent() {
     setAvatarVideoTrack,
     setAvatarStatus,
     softReset,
-    preWarmData,
-    setPreWarmData,
-    isPreWarming,
-    setIsPreWarming,
+
   } = useConversationStore();
 
   // Handle incoming data messages from agent
@@ -146,69 +139,17 @@ export function useVoiceAgent() {
     [setAvatarVideoTrack]
   );
 
-  // Pre-warm the connection (called on page load and hover)
-  // This triggers the backend to create a room AND start the agent + avatar
-  const preWarm = useCallback(async () => {
-    // Don't pre-warm if already pre-warming, in a call, or have valid pre-warm data
-    if (preWarmingRef.current || isPreWarming || callState !== 'idle') {
-      return;
-    }
-
-    // Check if existing pre-warm data is still valid
-    if (preWarmData && Date.now() - preWarmData.timestamp < PRE_WARM_EXPIRY_MS) {
-      return;
-    }
-
-    preWarmingRef.current = true;
-    setIsPreWarming(true);
-
-    try {
-      // Call the prewarm endpoint - this creates the room AND triggers the agent + avatar
-      // The avatar starts loading in the background while user reads the page
-      const prewarmInfo = await prewarmRoom();
-
-      setPreWarmData({
-        roomName: prewarmInfo.room_name,
-        token: prewarmInfo.token,
-        livekitUrl: prewarmInfo.livekit_url,
-        timestamp: Date.now(),
-      });
-
-      console.log('🔥 Pre-warming room (agent + avatar starting):', prewarmInfo.room_name, 'status:', prewarmInfo.status);
-    } catch (error) {
-      console.warn('Pre-warm failed:', error);
-      setPreWarmData(null);
-    } finally {
-      preWarmingRef.current = false;
-      setIsPreWarming(false);
-    }
-  }, [callState, isPreWarming, preWarmData, setIsPreWarming, setPreWarmData]);
-
   // Start a call
   const startVoiceCall = useCallback(async () => {
     try {
       startCall();
 
-      let roomName: string;
-      let token: string;
-      let livekitUrl: string;
-
-      // Use pre-warmed data if valid, otherwise create new room
-      if (preWarmData && Date.now() - preWarmData.timestamp < PRE_WARM_EXPIRY_MS) {
-        console.log('⚡ Using pre-warmed connection');
-        roomName = preWarmData.roomName;
-        token = preWarmData.token;
-        livekitUrl = preWarmData.livekitUrl;
-        // Clear pre-warm data since we're using it
-        setPreWarmData(null);
-      } else {
-        console.log('🔄 Creating new room (no pre-warm)');
-        const roomInfo = await createRoom();
-        roomName = roomInfo.room_name;
-        const tokenInfo = await getToken(roomName, 'user');
-        token = tokenInfo.token;
-        livekitUrl = tokenInfo.livekit_url;
-      }
+      console.log('🔄 Creating new room');
+      const roomInfo = await createRoom();
+      const roomName = roomInfo.room_name;
+      const tokenInfo = await getToken(roomName, 'user');
+      const token = tokenInfo.token;
+      const livekitUrl = tokenInfo.livekit_url;
 
       setRoomName(roomName);
 
@@ -282,7 +223,7 @@ export function useVoiceAgent() {
     } catch {
       setCallState('idle');
     }
-  }, [startCall, setRoomName, setCallState, handleDataReceived, handleTrackSubscribed, handleTrackUnsubscribed, callState, setIsSpeaking, setIsListening, preWarmData, setPreWarmData]);
+  }, [startCall, setRoomName, setCallState, handleDataReceived, handleTrackSubscribed, handleTrackUnsubscribed, callState, setIsSpeaking, setIsListening]);
 
   // End the call
   const endVoiceCall = useCallback(async () => {
@@ -388,13 +329,11 @@ export function useVoiceAgent() {
     setCallState('summary');
   }, [setCallState, setSummary]);
 
-  // Reset and start new call (use soft reset to keep pre-warm benefits)
+  // Start a new call after a previous one ended
   const startNewCall = useCallback(() => {
     softReset();
-    // Pre-warm a new room for the next call
-    preWarm();
     startVoiceCall();
-  }, [softReset, preWarm, startVoiceCall]);
+  }, [softReset, startVoiceCall]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -411,24 +350,11 @@ export function useVoiceAgent() {
     };
   }, []);
 
-  // Auto pre-warm DISABLED - was causing too many API calls
-  // The avatar will load when user clicks to start the call instead
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     if (callState === 'idle' && !preWarmData) {
-  //       console.log('🚀 Auto pre-warming on page load...');
-  //       preWarm();
-  //     }
-  //   }, 500);
-  //   return () => clearTimeout(timer);
-  // }, []);
-
   return {
     room,
     startCall: startVoiceCall,
     endCall: endVoiceCall,
     startNewCall,
-    preWarm, // Expose for hover pre-warming
     callState,
   };
 }

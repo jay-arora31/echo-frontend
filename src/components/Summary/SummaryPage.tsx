@@ -56,7 +56,7 @@ export function SummaryPage({ isGenerating, onNewCall, onClose }: SummaryPagePro
     }
 
     return (
-        <div className="min-h-screen w-full bg-[#f8f9fa]">
+        <div className="min-h-screen max-h-screen w-full bg-[#f8f9fa] overflow-y-auto">
             {/* Top bar - Google style */}
             <div className="bg-white border-b border-[#dadce0] sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto px-6 py-4">

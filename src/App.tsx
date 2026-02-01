@@ -12,7 +12,7 @@ import { useConnectingSound } from '@/hooks/useConnectingSound';
 import { Phone, Sparkles } from 'lucide-react';
 
 export default function App() {
-  const { startCall, endCall, startNewCall, preWarm } = useVoiceAgent();
+  const { startCall, endCall, startNewCall } = useVoiceAgent();
   const { callState, isSpeaking, isListening, reset, avatarVideoTrack } = useConversationStore();
   const { playConnectedChime } = useConnectingSound();
 
@@ -55,7 +55,6 @@ export default function App() {
             <div
               className="relative group cursor-pointer"
               onClick={startCall}
-              onMouseEnter={preWarm} // Pre-warm on hover for faster connection
             >
               <div className="absolute inset-0 bg-[#4285F4]/20 blur-3xl rounded-full group-hover:bg-[#4285F4]/30 transition-all duration-500 scale-150" />
               <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#4285F4] to-[#1A73E8] flex items-center justify-center shadow-xl group-hover:scale-105 transition-transform duration-300">
@@ -78,7 +77,6 @@ export default function App() {
 
             <button
               onClick={startCall}
-              onMouseEnter={preWarm} // Pre-warm on hover for faster connection
               className="mt-4 px-10 py-4 rounded-full bg-[#4285F4] text-white font-semibold text-lg hover:bg-[#1A73E8] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-200"
             >
               Start Conversation
